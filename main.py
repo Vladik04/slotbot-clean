@@ -11,45 +11,45 @@ from aiogram import Bot, Dispatcher, types
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.enums import ParseMode
 
+from app.config import BOT_TOKEN, LOG_FILE
+from app.database import Database
 from app.handlers import start, signals, funnel, vip
-from app.services.vip_service import VIPService
-from app.services.postback_service import PostbackService
 
 # Загрузить переменные окружения
 load_dotenv()
 
-# Логирование
+# Логирование в файл и консоль
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler(LOG_FILE),
+        logging.StreamHandler()
+    ]
 )
 logger = logging.getLogger(__name__)
-
-# Конфигурация
-BOT_TOKEN = os.getenv("BOT_TOKEN")
-if not BOT_TOKEN:
-    raise ValueError("❌ BOT_TOKEN не установлен!")
-
-logger.info(f"🤖 BOT_TOKEN: {BOT_TOKEN[:20]}...")
 
 
 async def main() -> None:
     """Главная функция бота."""
     try:
+        logger.info("=" * 60)
+        logger.info("🚀 Запуск SlotSignalsBot")
+        logger.info("=" * 60)
+        
+        # Инициализировать БД
+        db = Database()
+        logger.info("✅ База данных инициализирована")
+        
         # Инициализировать бота
         bot = Bot(token=BOT_TOKEN, parse_mode=ParseMode.MARKDOWN)
         storage = MemoryStorage()
         dp = Dispatcher(storage=storage)
         
-        # Инициализировать сервисы
-        vip_service = VIPService()
-        postback_service = PostbackService()
+        # Сохранить БД в контекст бота
+        bot["db"] = db
         
-        # Сохранить сервисы в контекст
-        dp.workflow_data["vip_service"] = vip_service
-        dp.workflow_data["postback_service"] = postback_service
-        
-        logger.info("✅ Сервисы инициализированы")
+        logger.info("✅ Бот инициализирован")
         
         # Регистрировать роутеры
         dp.include_router(start.router)
@@ -67,6 +67,7 @@ async def main() -> None:
         # Запустить polling
         logger.info("📡 Запуск polling...")
         logger.info("✅ БОТ ГОТОВ К РАБОТЕ!")
+        logger.info("=" * 60)
         
         await dp.start_polling(
             bot,
