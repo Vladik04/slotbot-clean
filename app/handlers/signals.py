@@ -3,6 +3,7 @@
 import logging
 from aiogram import Router, types
 from aiogram.filters import Command
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 logger = logging.getLogger(__name__)
 router = Router()
@@ -48,7 +49,12 @@ async def signals_command(message: types.Message) -> None:
                 "Хотите больше сигналов? Подпишитесь на VIP! /vip"
             )
         
-        await message.answer(signals_text)
+        # Создать inline кнопки
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="🎰 Играть", callback_data="play_signal")]
+        ])
+        
+        await message.answer(signals_text, reply_markup=keyboard)
         logger.info(f"✅ /signals от пользователя {user_id} (VIP: {is_vip})")
     except Exception as e:
         logger.error(f"❌ Ошибка /signals: {e}", exc_info=True)

@@ -13,7 +13,7 @@ from aiogram.enums import ParseMode
 
 from app.config import BOT_TOKEN, LOG_FILE
 from app.database import Database
-from app.handlers import start, signals, funnel, vip
+from app.handlers import start, signals, funnel, vip, callbacks
 
 # Загрузить переменные окружения
 load_dotenv()
@@ -52,6 +52,7 @@ async def main() -> None:
         logger.info("✅ Бот инициализирован")
         
         # Регистрировать роутеры
+        dp.include_router(callbacks.router)
         dp.include_router(start.router)
         dp.include_router(signals.router)
         dp.include_router(funnel.router)
